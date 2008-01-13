@@ -11,6 +11,7 @@ $|++;                  # Flush buffer after every write
 (my $X, my $Y, my $Z) = get_position();
 my $POS   = int($WIDTH / 2);
 my $FLOOR = 0;
+my $SPEED = 0;
 
 my @level = [ [1,10],
               [11,21],
@@ -26,9 +27,15 @@ while (1) {
   print_level($FLOOR, $POS, @level);
   detect_completed($FLOOR, @level);
   $FLOOR++ if detect_gap($POS, $FLOOR, @level);
-  $POS += get_movement($X, $Y, $Z);
-  $POS = 0          if $POS < 0;
-  $POS = $WIDTH - 1 if $POS >= $WIDTH;
+  $SPEED += get_movement($X, $Y, $Z);
+  $POS += $SPEED;
+  if ($POS < 0) {
+    $POS = 0;
+    $SPEED = 0;
+  } elsif ($POS >= $WIDTH) {
+    $POS = $WIDTH - 1 ;
+    $SPEED = 0;
+  }
   usleep($STEP);
 }
 
@@ -88,7 +95,7 @@ sub print_line {
 }
 
 sub get_position {
-  open(FILE, "/sys/devices/platform/applesmc.768/position") or die($! + ' ' + FILE);
+  open(FILE, "/sys/devices/platform/applesmc.768/position") or die($!);
   my $line = <FILE>;
   $line =~ /^\((.+),(.+),(.+)\)$/;
   close(FILE);
