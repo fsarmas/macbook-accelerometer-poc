@@ -3,6 +3,7 @@
 my $PREC  = 10;        # Precission
 my $STEP  = 100000;    # Microseconds between each time step
 my $WIDTH = 75;        # Width of floor in characters
+my $FRICTION = 1; # Speed will decrease in that number each step
 
 use strict;
 use Time::HiRes "usleep";
@@ -27,7 +28,9 @@ while (1) {
   print_level($FLOOR, $POS, @level);
   detect_completed($FLOOR, @level);
   $FLOOR++ if detect_gap($POS, $FLOOR, @level);
-  $SPEED += get_movement($X, $Y, $Z);
+  $SPEED += 2*get_movement($X, $Y, $Z);
+  $SPEED -= $FRICTION if $SPEED > 0;
+  $SPEED += $FRICTION if $SPEED < 0;
   $POS += $SPEED;
   if ($POS < 0) {
     $POS = 0;
@@ -95,7 +98,7 @@ sub print_line {
 }
 
 sub get_position {
-  open(FILE, "/sys/devices/platform/applesmc.768/position") or die($!);
+  open(FILE, "/tmp/position") or die($!);
   my $line = <FILE>;
   $line =~ /^\((.+),(.+),(.+)\)$/;
   close(FILE);
