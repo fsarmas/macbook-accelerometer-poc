@@ -1,16 +1,17 @@
 #!/usr/bin/perl
 
-my $PREC  = 10;        # Precission
-my $STEP  = 100000;    # Microseconds between each time step
-my $WIDTH = 75;        # Width of floor in characters
-my $FRICTION = 1; # Speed will decrease in that number each step
-
 use strict;
 use Time::HiRes "usleep";
 $|++;                  # Flush buffer after every write
 
+use constant PREC     => 10;     # Precision
+use constant STEP     => 100000; # Microseconds between each time step
+use constant WIDTH    => 75;     # Width of floor in characters
+use constant FRICTION => 1;      # Speed will decrease in that number each step
+
+my $POSITION_FILE = $ARGV[0];
 (my $X, my $Y, my $Z) = get_position();
-my $POS   = int($WIDTH / 2);
+my $POS   = int(WIDTH / 2);
 my $FLOOR = 0;
 my $SPEED = 0;
 
@@ -29,17 +30,17 @@ while (1) {
   detect_completed($FLOOR, @level);
   $FLOOR++ if detect_gap($POS, $FLOOR, @level);
   $SPEED += 2*get_movement($X, $Y, $Z);
-  $SPEED -= $FRICTION if $SPEED > 0;
-  $SPEED += $FRICTION if $SPEED < 0;
+  $SPEED -= FRICTION if $SPEED > 0;
+  $SPEED += FRICTION if $SPEED < 0;
   $POS += $SPEED;
   if ($POS < 0) {
     $POS = 0;
     $SPEED = 0;
-  } elsif ($POS >= $WIDTH) {
-    $POS = $WIDTH - 1 ;
+  } elsif ($POS >= WIDTH) {
+    $POS = WIDTH - 1 ;
     $SPEED = 0;
   }
-  usleep($STEP);
+  usleep(STEP);
 }
 
 sub detect_completed {
@@ -53,10 +54,10 @@ sub detect_completed {
 sub get_movement {
   (my $x, my $y, my $z) = get_position();
 
-  if ($x - $X > 2 * $PREC) {    # Left movement
+  if ($x - $X > 2 * PREC) {    # Left movement
     return -1;
   }
-  elsif ($x - $X < -2 * $PREC) {    # Right movement
+  elsif ($x - $X < -2 * PREC) {    # Right movement
     return 1;
   }
   else {
@@ -83,7 +84,7 @@ sub print_level {
 sub print_line {
   (my $gaps_r, my $pos) = @_;
   print "|";
-  for (my $i = 0 ; $i < $WIDTH ; $i++) {
+  for (my $i = 0 ; $i < WIDTH ; $i++) {
     if ($i == $pos) {
       print "O";
     }
@@ -98,13 +99,14 @@ sub print_line {
 }
 
 sub get_position {
-  open(FILE, "/tmp/position") or die($!);
+  my $filename = $POSITION_FILE || "/sys/devices/platform/applesmc.768/position";
+  open(FILE, $filename) or die($! . ' -> ' . $filename);
   my $line = <FILE>;
   $line =~ /^\((.+),(.+),(.+)\)$/;
   close(FILE);
-  my $x = int($1 / $PREC) * $PREC;
-  my $y = int($2 / $PREC) * $PREC;
-  my $z = int($3 / $PREC) * $PREC;
+  my $x = int($1 / PREC) * PREC;
+  my $y = int($2 / PREC) * PREC;
+  my $z = int($3 / PREC) * PREC;
 
   return $x, $y, $z;
 }
