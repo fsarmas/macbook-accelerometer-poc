@@ -17,7 +17,7 @@ Couldn't be easier. Assuming you have Perl installed:
 # 1. Guide the ball through the gaps all the way to the bottom
 perl gaps.pl
 
-# 2. Try to kill as much enemies as possible
+# 2. Try to kill as many enemies as possible
 perl spaceship.pl
 ```
 
